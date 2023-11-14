@@ -430,3 +430,66 @@ def plot_selected_columns(data, test_start_time, test_end_time, columns_to_plot)
     
     plt.tight_layout()
     plt.show()
+
+def alarm_type(decimal_number):
+    # Convert the decimal number to its binary representation
+    # The binary number will be a string in Python
+    binary_number = bin(decimal_number)[2:]
+    
+    # Reverse the binary string to match the positions with the alarm bits
+    # Python reads left to right, but the least significant bit is on the right
+    binary_number = binary_number[::-1]
+
+    # List to hold the alarm messages
+    alarms = [
+        "温度差异报警",
+        "电池高温报警",
+        "车载储能装置类型过压报警",
+        "车载储能装置类型欠压报警",
+        "SOC低报警",
+        "单体电池过压报警",
+        "单体电池欠压报警",
+        "SOC过高报警",
+        "SOC跳变报警",
+        "可充电储能系统不匹配报警",
+        "电池单体一致性差报警",
+        "绝缘报警",
+        "DC-DC温度报警",
+        "制动系统报警",
+        "DC-DC状态报警",
+        "驱动电机控制器温度报警",
+        "高压互锁状态报警",
+        "驱动电机温度报警",
+        "车载储能装置类型过充"
+        # The rest are reserved and not used
+    ]
+
+    # Check each bit of the binary number. If it's 1, add the corresponding alarm message
+    active_alarms = [alarms[i] for i in range(len(binary_number)) if i < len(alarms) and binary_number[i] == '1']
+
+    # Return the list of active alarms
+    return active_alarms
+
+def query_faults(data):
+    # Check if 'data' is a pandas DataFrame
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("Input must be a pandas DataFrame.")
+    
+    # Filter rows where 'max_alarm_lvl' is not 0
+    data_with_alarms = data[data['max_alarm_lvl'] != 0]
+    
+    # Get unique 'max_alarm_lvl' values
+    max_alarm_lvls = data_with_alarms['max_alarm_lvl'].unique()
+    
+    # Get unique 'alarm_info' values
+    alarm_infos = data_with_alarms['alarm_info'].unique()
+    
+    # Determine the alarm message for each unique 'alarm_info'
+    alarm_messages = [alarm_type(alarm_info) for alarm_info in alarm_infos]
+    
+    # Return a dictionary containing the levels and the corresponding alarm messages for each 'alarm_info'
+    return {
+        'max_alarm_lvls': max_alarm_lvls,
+        'alarm_infos': alarm_infos,
+        'alarm_messages': alarm_messages
+    }
